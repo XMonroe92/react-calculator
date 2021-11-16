@@ -1,0 +1,128 @@
+import * as React from "https://cdn.skypack.dev/react@17.0.1";
+import * as ReactDOM from "https://cdn.skypack.dev/react-dom@17.0.1";
+
+function calculate(equation) {
+    let operations = equation.match(/\/|\+|\*|\-/gi);
+    let numbers = equation.match(/\-?\d+\.?\d*/gi);
+    let num;
+    let numIndex = 0;
+    //SEARCH FOR / AND *
+    for (let signal of operations) {
+        switch (signal) {
+            case '/':
+                //CALCULATE
+                num = parseFloat(numbers[numIndex]) / parseFloat(numbers[numIndex + 1]);
+                num = num.toString();
+                //SWITCH NUMBERS IN NUMBERS ARRAY
+                numbers.splice(numIndex, 2, num);
+                break;
+            case '*':
+                num = parseFloat(numbers[numIndex]) * parseFloat(numbers[numIndex + 1]);
+                num = num.toString();
+                numbers.splice(numIndex, 2, num);
+                break;
+            default:
+                numIndex++;
+                break;
+        }
+    }
+    let result = 0;
+    //SEARCH FOR THE REMAINING OPERATORS IN ORDER
+    for (let number of numbers) {
+        result = result + parseFloat(number);
+    }
+    // TEST IT
+    return result;
+}
+
+class Keys extends React.Component{
+  constructor(props){
+    super(props)
+  }
+  render(){
+    return(
+      <div id="keys">
+        <button onClick={this.props.clear} className="red" style={{gridArea: "AC"}} id="clear">AC</button>
+        <button onClick={this.props.clickHandler} className="operator" style={{gridArea: "div"}} id="divide" value="/">/</button>
+        <button onClick={this.props.clickHandler} className="operator" style={{gridArea: "mult"}} value="*" id="multiply">*</button>
+        <button onClick={this.props.clickHandler} className="operator" style={{gridArea: "min"}} value="-" id="subtract">-</button>
+        <button onClick={this.props.clickHandler} className="operator" style={{gridArea: "plus"}} value="+" id="add">+</button>
+        <button id="equals" onClick={this.props.resolve} className="equal" style={{gridArea: "equal"}}>=</button>
+        <button onClick={this.props.clickHandler}style={{gridArea: "decimal"}} value="." id="decimal">.</button>
+        <button onClick={this.props.clickHandler} style={{gridArea: "one"}} value="1" id="one">1</button>
+        <button onClick={this.props.clickHandler} style={{gridArea: "two"}} value="2" id="two">2</button>
+        <button onClick={this.props.clickHandler} style={{gridArea: "three"}} value="3" id="three">3</button>
+        <button onClick={this.props.clickHandler} style={{gridArea: "four"}} value="4" id="four">4</button>
+        <button onClick={this.props.clickHandler} style={{gridArea: "five"}} value="5" id="five">5</button>
+        <button onClick={this.props.clickHandler} style={{gridArea: "six"}} value="6" id="six">6</button>
+        <button onClick={this.props.clickHandler} style={{gridArea: "seven"}} value="7" id="seven">7</button>
+        <button onClick={this.props.clickHandler} style={{gridArea: "eight"}} value="8" id="eight">8</button>
+        <button onClick={this.props.clickHandler} style={{gridArea: "nine"}} value="9" id="nine">9</button>
+        <button onClick={this.props.clickHandler} style={{gridArea: "zero"}} value="0" id="zero">0</button>
+      </div>
+    )
+  }
+}
+
+class App extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      display: "",
+      result: ""
+    }
+    this.clickHandler = this.clickHandler.bind(this);
+    this.clear = this.clear.bind(this);
+    this.resolve = this.resolve.bind(this);
+  }
+  clickHandler(e){
+    if(this.state.display == "0" && !e.target.value.match(/\/|\*|\+/)){
+      this.setState({
+        display: e.target.value
+      })
+    } else if(e.target.value === "." && this.state.display.match(/\d+\.\d*$/)){
+      this.setState({
+        display: this.state.display
+      })    
+    } else if(e.target.value.match(/\/|\*|\+/) && this.state.display.match(/\D\-?$/)){
+      this.setState({
+        display: this.state.display.replace(/\D\-?$/, e.target.value)
+      }) 
+    }else if(this.state.result && e.target.value.match(/\/|\*|\+|-/)){
+       this.setState({
+        display: this.state.result.toString().concat(e.target.value),
+        result: ""
+      }) 
+    } else{
+      this.setState({
+        display: this.state.display.concat(e.target.value)
+      })
+    }
+  }
+  clear(e){
+    this.setState({
+      display: "0",
+      result: ""
+    })
+  }
+  resolve(){
+    let result = calculate(this.state.display)
+    this.setState({
+      display: result.toString(),
+      result: result
+    })
+  }
+  render(){
+    return(
+      <div>
+        <div id="display-frame">
+          <div id="display">{this.state.display}</div>
+          <div id="result">{this.state.result}</div>
+        </div>
+        <Keys clickHandler={this.clickHandler} clear={this.clear} resolve={this.resolve} />
+      </div>
+    )
+  }
+}
+
+ReactDOM.render(<App />, document.getElementById("app"));
